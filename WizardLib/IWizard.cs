@@ -15,7 +15,7 @@ namespace WizardLib
 
 		bool CanGoNext();
 		bool CanGoPrevious();
-		bool CanFinish();
+		bool CanFinish(); 
 		bool CanRestart();
 		void GoNext();
 		void GoPrevious();
