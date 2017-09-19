@@ -1,0 +1,138 @@
+﻿<UserControl x:Class="WizardLib.WizardControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WizardLib"
+	        xmlns:ViewLib="clr-namespace:ViewLib;assembly=ViewLib"
+             mc:Ignorable="d" 
+             x:Name="wizardControl" d:DesignHeight="100" d:DesignWidth="700">
+
+	<UserControl.Resources>
+		<local:NullToVisibilityConverter x:Key="nullToVisibilityConverter"/>
+		<local:DummyWizard x:Key="dummyWizard"/>
+		<DataTemplate DataType="{x:Type local:DummyWizardPage}">
+			<StackPanel>
+				<TextBlock Text="{Binding Header}"/>
+				<TextBox Text="Fill in data}"/>
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate x:Key="defaultItemTemplate">
+			<DockPanel >
+				<Grid Width="16" Height="16" DockPanel.Dock="Left">
+					<Ellipse Stroke="White"/>
+					<TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="8" Text="{Binding Index}"/>
+				</Grid>
+				<TextBlock VerticalAlignment="Center"  Margin="5,0,0,0" FontSize="16" Text="{Binding Header}" TextTrimming="CharacterEllipsis"/>
+			</DockPanel>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<UserControl.CommandBindings>
+		<CommandBinding Command="{x:Static ViewLib:RoutedCommands.Next}" CanExecute="NextCommandBinding_CanExecute" Executed="NextCommandBinding_Executed"/>
+		<CommandBinding Command="{x:Static ViewLib:RoutedCommands.Previous}" CanExecute="PreviousCommandBinding_CanExecute" Executed="PreviousCommandBinding_Executed"/>
+		<CommandBinding Command="{x:Static ViewLib:RoutedCommands.Restart}" CanExecute="RestartCommandBinding_CanExecute" Executed="RestartCommandBinding_Executed"/>
+		<CommandBinding Command="{x:Static ViewLib:RoutedCommands.Stop}" CanExecute="FinishCommandBinding_CanExecute" Executed="FinishCommandBinding_Executed"/>
+	</UserControl.CommandBindings>
+
+	<DockPanel>
+		<Grid DockPanel.Dock="Bottom" Margin="10">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="100"/>
+				<ColumnDefinition Width="2*"/>
+				<ColumnDefinition Width="100"/>
+				<ColumnDefinition Width="5"/>
+				<ColumnDefinition Width="100"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="100"/>
+			</Grid.ColumnDefinitions>
+
+			<Button Grid.Column="0" Command="{x:Static ViewLib:RoutedCommands.Restart}">
+				<StackPanel Orientation="Horizontal">
+					<Image Margin="0,0,5,0" Source="/ViewLib;component/Images/control_start.png" Stretch="None"/>
+					<TextBlock Text="Restart"/>
+				</StackPanel>
+			</Button>
+
+			<Button Grid.Column="2" Command="{x:Static ViewLib:RoutedCommands.Previous}">
+				<StackPanel Orientation="Horizontal">
+					<Image Margin="0,0,5,0" Source="/ViewLib;component/Images/control_rewind.png" Stretch="None"/>
+					<TextBlock Text="Previous"/>
+				</StackPanel>
+			</Button>
+
+			<Button Grid.Column="4" Command="{x:Static ViewLib:RoutedCommands.Next}">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="Next"/>
+					<Image Margin="5,0,0,0" Source="/ViewLib;component/Images/control_fastforward.png" Stretch="None"/>
+				</StackPanel>
+			</Button>
+
+			<Button Grid.Column="6" Command="{x:Static ViewLib:RoutedCommands.Stop}">
+				<StackPanel Orientation="Horizontal">
+					<Image Margin="0,0,5,0" Source="/ViewLib;component/Images/control_stop.png" Stretch="None"/>
+					<TextBlock Text="Finish"/>
+				</StackPanel>
+			</Button>
+		</Grid>
+
+		<Grid DockPanel.Dock="Top" DataContext="{Binding ElementName=wizardControl,Path=Wizard,FallbackValue={StaticResource dummyWizard}}">
+			<ItemsControl ItemsSource="{Binding Pages}" Background="#AAAAAA">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<StackPanel Orientation="Horizontal"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemContainerStyle>
+					<Style TargetType="{x:Type ContentPresenter}">
+						<Setter Property="ToolTip" Value="{Binding Header}"/>
+						<Setter Property="ContentTemplate">
+							<Setter.Value>
+								<DataTemplate>
+									<Grid Height="40" Width="128" TextBlock.Foreground="White" >
+										<Canvas>
+											<Polygon Points="128,0 0,0  20,20 0,40 128,40 148,20 128,0" Stroke="Black" StrokeThickness="1">
+												<Polygon.Style>
+													<Style TargetType="Polygon">
+														<Setter Property="Polygon.Fill" Value="#BBBBBB"/>
+														<Style.Triggers>
+															<DataTrigger Binding="{Binding IsDone}" Value="True">
+																<Setter Property="Polygon.Fill" Value="Green"/>
+															</DataTrigger>
+															<DataTrigger Binding="{Binding IsSelected}" Value="True">
+																<Setter Property="Polygon.Fill" Value="Orange"/>
+															</DataTrigger>
+														</Style.Triggers>
+													</Style>
+												</Polygon.Style>
+											</Polygon>
+										</Canvas>
+										<ContentPresenter Margin="25,0,0,0" Content="{Binding}" ContentTemplate="{Binding ElementName=wizardControl,Path=ItemTemplate,FallbackValue={StaticResource defaultItemTemplate},TargetNullValue={StaticResource defaultItemTemplate}}"/>
+									</Grid>
+								</DataTemplate>
+
+							</Setter.Value>
+						</Setter>
+					</Style>
+				</ItemsControl.ItemContainerStyle>
+			</ItemsControl>
+		</Grid>
+
+		<Border DockPanel.Dock="Top" BorderBrush="#44000000" BorderThickness="1" DataContext="{Binding ElementName=wizardControl,Path=Wizard.SelectedPage}" ToolTip="{Binding ErrorMessage}"
+			Visibility="{Binding ErrorMessage,FallbackValue=Collapsed,TargetNullValue=Collapsed, Converter={StaticResource nullToVisibilityConverter}}">
+			<DockPanel>
+				<Image Margin="2" DockPanel.Dock="Left" Source="/ViewLib;component/Images/exclamation.png" Stretch="None" />
+				<TextBlock Margin="2" Text="{Binding ErrorMessage, TargetNullValue=No error , FallbackValue=No error}" VerticalAlignment="Center"/>
+			</DockPanel>
+		</Border>
+		
+		<Grid DataContext="{Binding ElementName=wizardControl,Path=Wizard,FallbackValue={StaticResource dummyWizard}}">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="119*"/>
+				<ColumnDefinition Width="131*"/>
+			</Grid.ColumnDefinitions>
+			<ContentPresenter Content="{Binding SelectedPage}" Grid.ColumnSpan="2"/>
+		</Grid>
+	</DockPanel>
+
+</UserControl>
